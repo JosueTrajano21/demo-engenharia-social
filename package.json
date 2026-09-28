@@ -1,0 +1,9 @@
+{
+  "name": "demo-engenharia-social",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demonstração educacional de informações passivas do navegador",
+  "scripts": { "start": "node server.js", "test": "node --test" },
+  "engines": { "node": ">=22" },
+  "dependencies": { "express": "^5.1.0" }
+}

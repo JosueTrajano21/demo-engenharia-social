@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feedback da Palestra</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23081320'/%3E%3Cpath d='m8 10 6 6-6 6m9 0h7' fill='none' stroke='%2322d3ee' stroke-width='3'/%3E%3C/svg%3E">
+  <style>
+*{box-sizing:border-box}body{margin:0;background:#07111e;color:#e8f3ff;font:16px/1.6 system-ui,sans-serif}.banner{padding:16px 24px;background:#831d2c;color:#fff;text-align:center;font-weight:750}main{max-width:900px;margin:54px auto;padding:0 24px}.eyebrow{font-size:14px;letter-spacing:.12em;color:#67e8f9}h1{font-size:clamp(32px,6vw,52px);letter-spacing:-.04em;line-height:1.15;margin:18px 0}p{color:#aebfd1}.card{margin:30px 0;padding:28px;background:#0d1c2e;border:1px solid #234158;border-radius:20px}label{display:block;font-weight:650;margin-bottom:10px}textarea{display:block;width:100%;min-height:155px;resize:vertical;background:#071321;border:1px solid #486075;border-radius:12px;padding:16px;color:#fff;font:inherit;margin-bottom:20px}textarea:focus,button:focus-visible{outline:3px solid #67e8f9;outline-offset:4px}button{padding:14px 24px;border:0;border-radius:10px;background:#67e8f9;color:#082030;font:700 16px system-ui;cursor:pointer}button:disabled{opacity:.6;cursor:wait}.note{font-size:14px}.terminal{border:1px solid #276277;border-radius:16px;overflow:hidden;margin:30px 0}.terminal header{padding:14px 20px;background:#123044;color:#8beaff;font-family:monospace}pre{padding:20px;margin:0;background:#020b12;color:#a5f3fc;white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.8 ui-monospace,monospace}.insight{padding:20px;margin:0;background:#102b37;color:#a5f3fc;font-weight:650}footer{font-size:14px;color:#aebfd1;margin-bottom:36px}#status{min-height:26px}[hidden]{display:none}@media(max-width:500px){main{margin-top:32px;padding:0 16px}.card{padding:20px}button{width:100%}}  </style>
+</head>
+<body>
+  <main>
+    <span class="eyebrow">ENGENHARIA SOCIAL / EXPERIMENTO AO VIVO</span>
+    <h1>Feedback da Palestra</h1>
+    <p>O que você leva desta conversa?</p>
+    <form class="card" id="form">
+      <label for="feedback">Seu feedback <span class="note">(opcional)</span></label>
+      <textarea id="feedback" maxlength="2000" placeholder="Compartilhe sua impressão."></textarea>  
+      <button id="enviar" type="submit">Enviar Feedback</button>
+      <p id="status" role="status" aria-live="polite"></p>
+    </form>
+    <section id="resultado" class="terminal" hidden aria-label="Dados coletados">
+      <header>TERMINAL / SEU RASTRO DIGITAL</header>
+      <pre id="dados"></pre>
+      <p class="insight">💡 Tudo isso foi obtido SEM você digitar nada.</p>
+    </section>
+    <footer>      
+      <p class="note">Ao enviar, informações do navegador, IP e localização aproximada por IP serão exibidas aqui e no painel público da demonstração. O texto do feedback não é transmitido.</p>
+      <p class="note">Não há gravação permanente pelo aplicativo. Os últimos 500 registros ficam temporariamente na memória até o servidor reiniciar. A consulta externa ao ipapi.co recebe seu IP e segue as políticas desse serviço.</p>
+      <p class="note">Sem solicitação de GPS, câmera ou microfone. Informações podem estar indisponíveis, reduzidas ou incorretas. Toque não identifica, por si só, um celular; localização por IP não indica sua posição exata.</p>
+    </footer>
+  </main>
+  <script>
+    'use strict';
+    const indisponivel = 'Não disponível';
+    // APIs opcionais nunca devem impedir o envio do restante da demonstração.
+    async function bateria() {
+      if (!navigator.getBattery) return indisponivel;
+      let temporizador;
+      try {
+        const b = await Promise.race([navigator.getBattery(), new Promise((_, rejeitar) => {
+          temporizador = setTimeout(() => rejeitar(new Error('Timeout')), 2500);
+        })]);
+        return Math.round(b.level * 100) + '%';
+      } catch { return indisponivel; } finally { clearTimeout(temporizador); }
+    }
+    async function localizacao() {
+      const controle = new AbortController();
+      const tempo = setTimeout(() => controle.abort(), 4500);
+      try {
+        const resposta = await fetch('https://ipapi.co/json/', { signal: controle.signal, cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer' });
+        if (!resposta.ok) throw new Error('API indisponível');
+        const l = await resposta.json();
+        if (l.error) throw new Error('Consulta recusada');
+        return { status: 'Aproximada, baseada no IP — pode estar incorreta', cidade: l.city ?? indisponivel,
+          regiao: l.region ?? indisponivel, pais: l.country_name ?? indisponivel, operadora: l.org ?? indisponivel,
+          latitude: l.latitude ?? null, longitude: l.longitude ?? null };
+      } catch { return { status: 'Indisponível (rede, bloqueio ou limite da API)' }; }
+      finally { clearTimeout(tempo); }
+    }
+    document.querySelector('#form').addEventListener('submit', async (evento) => {
+      evento.preventDefault();
+      const botao = document.querySelector('#enviar');
+      const status = document.querySelector('#status');
+      botao.disabled = true;
+      document.querySelector('#resultado').hidden = true;
+      status.textContent = 'Consultando informações disponíveis…';
+      try {
+        const dados = {
+          userAgent: navigator.userAgent, language: navigator.language, languages: [...navigator.languages],
+          platform: navigator.platform, hardwareConcurrency: navigator.hardwareConcurrency ?? indisponivel,
+          deviceMemory: navigator.deviceMemory ?? indisponivel,
+          screen: screen.width + ' × ' + screen.height + ' pixels CSS',
+          viewport: innerWidth + ' × ' + innerHeight + ' pixels CSS', devicePixelRatio: window.devicePixelRatio,
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, maxTouchPoints: navigator.maxTouchPoints,
+          effectiveType: navigator.connection?.effectiveType ?? indisponivel, cookieEnabled: navigator.cookieEnabled,
+          localDateTime: new Date().toLocaleString('pt-BR')
+        };
+        [dados.battery, dados.localizacao] = await Promise.all([bateria(), localizacao()]);
+        const controle = new AbortController();
+        const tempo = setTimeout(() => controle.abort(), 10000);
+        let resposta;
+        try { resposta = await fetch('/api/coletar', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dados), signal: controle.signal }); } finally { clearTimeout(tempo); }
+        if (!resposta.ok) throw new Error('Falha ao enviar');
+        const retorno = await resposta.json();
+        if (!retorno.ok) throw new Error('Falha ao enviar');
+        // textContent evita que valores recebidos sejam interpretados como HTML.
+        document.querySelector('#dados').textContent = JSON.stringify(retorno.registro, null, 2);
+        document.querySelector('#resultado').hidden = false;
+        status.textContent = 'Demonstração enviada. Veja abaixo as informações coletadas.';
+      } catch { status.textContent = 'Não foi possível confirmar o envio. Verifique sua conexão. Uma nova tentativa pode duplicar o registro.'; }
+      finally { botao.disabled = false; }
+    });
+  </script>
+</body>
+</html>
