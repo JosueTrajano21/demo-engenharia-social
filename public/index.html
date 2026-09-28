@@ -5,16 +5,20 @@
   <title>Feedback da Palestra</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23081320'/%3E%3Cpath d='m8 10 6 6-6 6m9 0h7' fill='none' stroke='%2322d3ee' stroke-width='3'/%3E%3C/svg%3E">
   <style>
-*{box-sizing:border-box}body{margin:0;background:#07111e;color:#e8f3ff;font:16px/1.6 system-ui,sans-serif}.banner{padding:16px 24px;background:#831d2c;color:#fff;text-align:center;font-weight:750}main{max-width:900px;margin:54px auto;padding:0 24px}.eyebrow{font-size:14px;letter-spacing:.12em;color:#67e8f9}h1{font-size:clamp(32px,6vw,52px);letter-spacing:-.04em;line-height:1.15;margin:18px 0}p{color:#aebfd1}.card{margin:30px 0;padding:28px;background:#0d1c2e;border:1px solid #234158;border-radius:20px}label{display:block;font-weight:650;margin-bottom:10px}textarea{display:block;width:100%;min-height:155px;resize:vertical;background:#071321;border:1px solid #486075;border-radius:12px;padding:16px;color:#fff;font:inherit;margin-bottom:20px}textarea:focus,button:focus-visible{outline:3px solid #67e8f9;outline-offset:4px}button{padding:14px 24px;border:0;border-radius:10px;background:#67e8f9;color:#082030;font:700 16px system-ui;cursor:pointer}button:disabled{opacity:.6;cursor:wait}.note{font-size:14px}.terminal{border:1px solid #276277;border-radius:16px;overflow:hidden;margin:30px 0}.terminal header{padding:14px 20px;background:#123044;color:#8beaff;font-family:monospace}pre{padding:20px;margin:0;background:#020b12;color:#a5f3fc;white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.8 ui-monospace,monospace}.insight{padding:20px;margin:0;background:#102b37;color:#a5f3fc;font-weight:650}footer{font-size:14px;color:#aebfd1;margin-bottom:36px}#status{min-height:26px}[hidden]{display:none}@media(max-width:500px){main{margin-top:32px;padding:0 16px}.card{padding:20px}button{width:100%}}  </style>
+    *{box-sizing:border-box}body{margin:0;background:#07111e;color:#e8f3ff;font:16px/1.6 system-ui,sans-serif}.banner{padding:16px 24px;background:#831d2c;color:#fff;text-align:center;font-weight:750}main{max-width:900px;margin:54px auto;padding:0 24px}.eyebrow{font-size:14px;letter-spacing:.12em;color:#67e8f9}h1{font-size:clamp(32px,6vw,52px);letter-spacing:-.04em;line-height:1.15;margin:18px 0}p{color:#aebfd1}.card{margin:30px 0;padding:28px;background:#0d1c2e;border:1px solid #234158;border-radius:20px}label{display:block;font-weight:650;margin-bottom:10px}textarea{display:block;width:100%;min-height:155px;resize:vertical;background:#071321;border:1px solid #486075;border-radius:12px;padding:16px;color:#fff;font:inherit}textarea:focus,button:focus-visible{outline:3px solid #67e8f9;outline-offset:4px}button{padding:14px 24px;border:0;border-radius:10px;background:#67e8f9;color:#082030;font:700 16px system-ui;cursor:pointer}button:disabled{opacity:.6;cursor:wait}.note{font-size:14px}.terminal{border:1px solid #276277;border-radius:16px;overflow:hidden;margin:30px 0}.terminal header{padding:14px 20px;background:#123044;color:#8beaff;font-family:monospace}pre{padding:20px;margin:0;background:#020b12;color:#a5f3fc;white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.8 ui-monospace,monospace}.insight{padding:20px;margin:0;background:#102b37;color:#a5f3fc;font-weight:650}footer{font-size:14px;color:#aebfd1;margin-bottom:36px}#status{min-height:26px} [hidden]{display:none}@media(max-width:500px){main{margin-top:32px;padding:0 16px}.card{padding:20px}button{width:100%}}
+  </style>
 </head>
 <body>
+  <div class="banner">⚠️ DEMONSTRAÇÃO EDUCACIONAL — Nenhum dado é armazenado</div>
   <main>
     <span class="eyebrow">ENGENHARIA SOCIAL / EXPERIMENTO AO VIVO</span>
     <h1>Feedback da Palestra</h1>
     <p>O que você leva desta conversa?</p>
     <form class="card" id="form">
       <label for="feedback">Seu feedback <span class="note">(opcional)</span></label>
-      <textarea id="feedback" maxlength="2000" placeholder="Compartilhe sua impressão."></textarea>  
+      <textarea id="feedback" maxlength="2000" placeholder="Compartilhe sua impressão. Não inclua dados pessoais."></textarea>
+      <p class="note">Ao enviar, informações do navegador, IP e localização aproximada por IP serão exibidas aqui e no painel público da demonstração. O texto do feedback não é transmitido.</p>
+      <p class="note">Não há gravação permanente pelo aplicativo. Os últimos 500 registros ficam temporariamente na memória até o servidor reiniciar. A consulta externa ao ipapi.co recebe seu IP e segue as políticas desse serviço.</p>
       <button id="enviar" type="submit">Enviar Feedback</button>
       <p id="status" role="status" aria-live="polite"></p>
     </form>
@@ -23,11 +27,7 @@
       <pre id="dados"></pre>
       <p class="insight">💡 Tudo isso foi obtido SEM você digitar nada.</p>
     </section>
-    <footer>      
-      <p class="note">Ao enviar, informações do navegador, IP e localização aproximada por IP serão exibidas aqui e no painel público da demonstração. O texto do feedback não é transmitido.</p>
-      <p class="note">Não há gravação permanente pelo aplicativo. Os últimos 500 registros ficam temporariamente na memória até o servidor reiniciar. A consulta externa ao ipapi.co recebe seu IP e segue as políticas desse serviço.</p>
-      <p class="note">Sem solicitação de GPS, câmera ou microfone. Informações podem estar indisponíveis, reduzidas ou incorretas. Toque não identifica, por si só, um celular; localização por IP não indica sua posição exata.</p>
-    </footer>
+    <footer>Sem solicitação de GPS, câmera ou microfone. Informações podem estar indisponíveis, reduzidas ou incorretas. Toque não identifica, por si só, um celular; localização por IP não indica sua posição exata.</footer>
   </main>
   <script>
     'use strict';
@@ -45,16 +45,36 @@
     }
     async function localizacao() {
       const controle = new AbortController();
-      const tempo = setTimeout(() => controle.abort(), 4500);
+      const tempo = setTimeout(() => controle.abort(), 10000);
       try {
         const resposta = await fetch('https://ipapi.co/json/', { signal: controle.signal, cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer' });
-        if (!resposta.ok) throw new Error('API indisponível');
-        const l = await resposta.json();
-        if (l.error) throw new Error('Consulta recusada');
+        // Não misture erros HTTP com falhas de rede: cada um exige uma solução diferente.
+        if (!resposta.ok) {
+          const motivo = resposta.status === 429 ? 'Limite de consultas da API atingido'
+            : resposta.status === 403 ? 'A API recusou o acesso'
+            : 'A API retornou um erro';
+          return { status: motivo + ' (HTTP ' + resposta.status + ')' };
+        }
+        let l;
+        try { l = await resposta.json(); }
+        catch (erro) {
+          if (erro.name === 'AbortError') throw erro;
+          return { status: 'A API respondeu sem um JSON válido' };
+        }
+        if (!l || typeof l !== 'object' || Array.isArray(l)) return { status: 'Resposta inesperada da API' };
+        if (l.error) {
+          // Mensagem do serviço, limitada e exibida como texto, nunca como HTML.
+          const motivo = typeof l.reason === 'string' ? l.reason.slice(0, 180) : 'Motivo não informado';
+          return { status: 'Consulta recusada pela API: ' + motivo };
+        }
         return { status: 'Aproximada, baseada no IP — pode estar incorreta', cidade: l.city ?? indisponivel,
           regiao: l.region ?? indisponivel, pais: l.country_name ?? indisponivel, operadora: l.org ?? indisponivel,
           latitude: l.latitude ?? null, longitude: l.longitude ?? null };
-      } catch { return { status: 'Indisponível (rede, bloqueio ou limite da API)' }; }
+      } catch (erro) {
+        return { status: erro.name === 'AbortError'
+          ? 'Consulta excedeu 10 segundos. Tente novamente mais tarde.'
+          : 'O navegador não conseguiu acessar a API (rede, DNS, bloqueador ou CORS). Verifique o Console/Rede do navegador.' };
+      }
       finally { clearTimeout(tempo); }
     }
     document.querySelector('#form').addEventListener('submit', async (evento) => {
