@@ -18,7 +18,7 @@
       <label for="feedback">Seu feedback <span class="note">(opcional)</span></label>
       <textarea id="feedback" maxlength="2000" placeholder="Compartilhe sua impressão. Não inclua dados pessoais."></textarea>
       <p class="note">Ao enviar, informações do navegador, IP e localização aproximada por IP serão exibidas aqui e no painel público da demonstração. O texto do feedback não é transmitido.</p>
-      <p class="note">Não há gravação permanente pelo aplicativo. Os últimos 500 registros ficam temporariamente na memória até o servidor reiniciar. A consulta externa ao ipapi.co recebe seu IP e segue as políticas desse serviço.</p>
+      <p class="note">Não há gravação permanente pelo aplicativo. Os últimos 500 registros ficam temporariamente na memória até o servidor reiniciar. O servidor envia seu IP ao IPGeolocation.io para estimar a localização, conforme as políticas desse serviço.</p>
       <button id="enviar" type="submit">Enviar Feedback</button>
       <p id="status" role="status" aria-live="polite"></p>
     </form>
@@ -43,40 +43,6 @@
         return Math.round(b.level * 100) + '%';
       } catch { return indisponivel; } finally { clearTimeout(temporizador); }
     }
-    async function localizacao() {
-      const controle = new AbortController();
-      const tempo = setTimeout(() => controle.abort(), 10000);
-      try {
-        const resposta = await fetch('https://ipapi.co/json/', { signal: controle.signal, cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer' });
-        // Não misture erros HTTP com falhas de rede: cada um exige uma solução diferente.
-        if (!resposta.ok) {
-          const motivo = resposta.status === 429 ? 'Limite de consultas da API atingido'
-            : resposta.status === 403 ? 'A API recusou o acesso'
-            : 'A API retornou um erro';
-          return { status: motivo + ' (HTTP ' + resposta.status + ')' };
-        }
-        let l;
-        try { l = await resposta.json(); }
-        catch (erro) {
-          if (erro.name === 'AbortError') throw erro;
-          return { status: 'A API respondeu sem um JSON válido' };
-        }
-        if (!l || typeof l !== 'object' || Array.isArray(l)) return { status: 'Resposta inesperada da API' };
-        if (l.error) {
-          // Mensagem do serviço, limitada e exibida como texto, nunca como HTML.
-          const motivo = typeof l.reason === 'string' ? l.reason.slice(0, 180) : 'Motivo não informado';
-          return { status: 'Consulta recusada pela API: ' + motivo };
-        }
-        return { status: 'Aproximada, baseada no IP — pode estar incorreta', cidade: l.city ?? indisponivel,
-          regiao: l.region ?? indisponivel, pais: l.country_name ?? indisponivel, operadora: l.org ?? indisponivel,
-          latitude: l.latitude ?? null, longitude: l.longitude ?? null };
-      } catch (erro) {
-        return { status: erro.name === 'AbortError'
-          ? 'Consulta excedeu 10 segundos. Tente novamente mais tarde.'
-          : 'O navegador não conseguiu acessar a API (rede, DNS, bloqueador ou CORS). Verifique o Console/Rede do navegador.' };
-      }
-      finally { clearTimeout(tempo); }
-    }
     document.querySelector('#form').addEventListener('submit', async (evento) => {
       evento.preventDefault();
       const botao = document.querySelector('#enviar');
@@ -95,9 +61,9 @@
           effectiveType: navigator.connection?.effectiveType ?? indisponivel, cookieEnabled: navigator.cookieEnabled,
           localDateTime: new Date().toLocaleString('pt-BR')
         };
-        [dados.battery, dados.localizacao] = await Promise.all([bateria(), localizacao()]);
+        dados.battery = await bateria(); // A localização será consultada pelo servidor.
         const controle = new AbortController();
-        const tempo = setTimeout(() => controle.abort(), 10000);
+        const tempo = setTimeout(() => controle.abort(), 15000);
         let resposta;
         try { resposta = await fetch('/api/coletar', { method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(dados), signal: controle.signal }); } finally { clearTimeout(tempo); }

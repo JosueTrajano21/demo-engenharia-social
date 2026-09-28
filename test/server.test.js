@@ -22,6 +22,8 @@ test('rotas, coleta temporária e validação', async () => {
     assert.equal(retorno.ok, true);
     assert.equal(retorno.registro.ip, '127.0.0.1');
     assert.equal(retorno.registro.feedback, undefined);
+    assert.equal(retorno.registro.localizacao.cidade, null);
+    assert.match(retorno.registro.localizacao.status, /local ou privado/);
     assert.notEqual(retorno.registro.timestamp, 'falso');
     const lista = await fetch(base + '/api/lista');
     assert.equal(lista.headers.get('cache-control'), 'no-store');

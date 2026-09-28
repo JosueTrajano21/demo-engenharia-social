@@ -31,9 +31,9 @@ A coleta explícita começa ao clicar em Enviar Feedback. O navegador já envia 
 
 O banner solicitado está acompanhado da explicação de retenção: não há armazenamento permanente **pelo aplicativo**, mas até 500 registros ficam na RAM, disponíveis no painel público. Ao exceder esse limite, o mais antigo é descartado. Não há autenticação neste painel: qualquer pessoa com acesso ao site pode consultar a lista.
 
-O navegador consulta `https://ipapi.co/json/` diretamente. Isso expõe o IP do visitante ao serviço externo, cujas políticas e registros não são controlados por este aplicativo. A hospedagem também pode manter logs de acesso. Portanto, não prometa ausência de armazenamento por terceiros. Documentação: https://ipapi.co/api/
+O servidor consulta a API v3 do IPGeolocation.io com uma chave privada e o IP do visitante. O navegador acessa somente o próprio site. Isso expõe o IP do visitante ao serviço externo, cujas políticas e registros não são controlados por este aplicativo. A hospedagem também pode manter logs de acesso. Portanto, não prometa ausência de armazenamento por terceiros. Documentação: https://ipgeolocation.io/documentation/ip-location-api.html
 
-Localização por IP pode apontar para a sede do provedor, uma VPN ou outra cidade. As coordenadas retornadas são estimativas por IP, não GPS. `org` identifica a organização da rede, que pode diferir da operadora comercial. Não há chamada a `navigator.geolocation` nem solicitação de câmera/microfone.
+Localização por IP pode apontar para a sede do provedor, uma VPN ou outra cidade. As coordenadas retornadas são estimativas por IP, não GPS. `asn.organization` identifica a organização da rede, que pode diferir da operadora comercial. Não há chamada a `navigator.geolocation` nem solicitação de câmera/microfone.
 
 RAM, bateria e tipo de conexão não estão disponíveis em todos os navegadores. Falhas, bloqueios, limites da API e tempo excedido aparecem como indisponíveis. Núcleos são processadores lógicos reportados; RAM é aproximada; telas usam pixels CSS. `maxTouchPoints` indica suporte a toque, não prova que o dispositivo é mobile. User agent e platform podem ser reduzidos ou falsificados. Ausência de uma janela de permissão não significa ausência de implicações de privacidade.
 
@@ -63,4 +63,17 @@ Não há necessidade de disco persistente ou banco. Teste o endereço publicado 
 npm test
 ```
 
-Na página pública, envie com o textarea vazio: os dados devem aparecer no terminal e no painel. Bloqueie o acesso ao ipapi.co: o envio deve continuar com localização indisponível. Reinicie o servidor: a lista deve estar vazia. Evite registrar dados reais em capturas ou gravações da palestra sem autorização dos participantes.
+Na página pública, envie com o textarea vazio: os dados devem aparecer no terminal e no painel. Sem a chave configurada, o envio deve continuar com localização indisponível. Em localhost, o IP local não é enviado ao provedor. Reinicie o servidor: a lista deve estar vazia. Evite registrar dados reais em capturas ou gravações da palestra sem autorização dos participantes.
+
+## Configurar IPGeolocation.io
+
+1. Crie uma conta em https://app.ipgeolocation.io/signup e copie a chave no painel do provedor.
+2. No Render, em Environment, crie `IPGEOLOCATION_API_KEY` com sua chave. Mantenha `TRUST_PROXY=true` atrás do proxy do Render.
+3. Salve e aplique um novo deploy com estes arquivos atualizados. A chave não deve ser colocada no HTML, no GitHub ou compartilhada no chat.
+4. Faça um novo envio pelo endereço HTTPS do Render. O registro deve incluir cidade, região, país, organização da rede e coordenadas aproximadas, quando disponíveis.
+
+A consulta usa `https://api.ipgeolocation.io/v3/ipgeo` e informa explicitamente o parâmetro `ip`. A integração não consulta o IP do Render por engano. Nenhuma nova dependência foi adicionada. O arquivo `geolocalizacao.js` deve ser enviado junto com `server.js`.
+
+Resultados são reutilizados em RAM por até 5 minutos, até 500 entradas, com expiração verificada a cada consulta. Falhas são reutilizadas por 15 segundos; consultas simultâneas do mesmo IP são agrupadas. O timeout da API é 6 segundos. Os registros do painel continuam existindo até reiniciar ou atingir o limite de 500. CORS do provedor não se aplica à consulta entre servidores; indisponibilidade, cotas e erros de autenticação continuam possíveis.
+
+Para configurar uma chave localmente no PowerShell, defina `$env:IPGEOLOCATION_API_KEY` antes de executar `npm start`. Arquivos `.env` não são carregados automaticamente. Testar por localhost não fornece um IP público; faça a validação real no Render.

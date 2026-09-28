@@ -2,6 +2,8 @@
 const express = require('express');
 const path = require('node:path');
 const { isIP } = require('node:net');
+const { criarLocalizador } = require('./geolocalizacao');
+const localizar = criarLocalizador();
 const app = express();
 const registros = []; // Apenas RAM: reiniciar o processo elimina os registros.
 const MAX_REGISTROS = 500;
@@ -23,7 +25,7 @@ function valorSimples(valor) {
   return typeof valor === 'string' ? valor.slice(0, 1500)
     : typeof valor === 'boolean' || (typeof valor === 'number' && Number.isFinite(valor)) ? valor : null;
 }
-app.post('/api/coletar', (req, res) => {
+app.post('/api/coletar', async (req, res) => {
   if (!req.is('application/json') || !req.body || Array.isArray(req.body) || typeof req.body !== 'object') {
     return res.status(400).json({ ok: false, erro: 'Envie um objeto JSON.' });
   }
@@ -32,16 +34,15 @@ app.post('/api/coletar', (req, res) => {
     dados[campo] = campo === 'languages' && Array.isArray(req.body[campo])
       ? req.body[campo].slice(0, 20).map(valorSimples) : valorSimples(req.body[campo]);
   }
-  dados.localizacao = {};
-  for (const campo of ['status', 'cidade', 'regiao', 'pais', 'operadora', 'latitude', 'longitude']) {
-    dados.localizacao[campo] = valorSimples(req.body.localizacao?.[campo]);
-  }
   // Ative somente atrás de um proxy confiável que normalize x-forwarded-for.
   const encaminhado = process.env.TRUST_PROXY === 'true'
     ? req.get('x-forwarded-for')?.split(',')[0].trim() : null;
   const registro = { ...dados, ip: encaminhado && isIP(encaminhado) ? encaminhado : req.socket.remoteAddress,
     timestamp: new Date().toISOString() };
+  // O servidor determina o IP; ignora localização e IP enviados no corpo pelo navegador.
+  registro.localizacao = await localizar(registro.ip);
   registros.unshift(registro);
+  registros.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
   if (registros.length > MAX_REGISTROS) registros.length = MAX_REGISTROS;
   // Devolver o próprio registro permite mostrar também IP e hora do servidor.
   res.json({ ok: true, registro });
